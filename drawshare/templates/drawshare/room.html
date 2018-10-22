@@ -1,0 +1,90 @@
+<!-- drawshare/templates/drawshare/room.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>DrawShare Room</title>
+</head>
+<body>
+    <select id="draw-color-select" name="colors">
+        <option value="#ff0000">Red</option>
+        <option value="#00ff00">Green</option>
+        <option value="#0000ff">Blue</option>
+    </select>
+    <canvas id="draw-canvas" style="border:1px solid #000000;"></canvas>
+</body>
+<style>
+    #draw-canvas{
+        display: block;
+        margin-left: 7.5%;
+        margin-top:1.5%
+    }
+
+    #draw-color-select{
+        display: block;
+    }
+</style>
+<script>
+    window.onload = function(){resize_canvas()};
+    window.onresize = function(){resize_canvas()};
+
+    function resize_canvas() {
+        let our_canvas = document.getElementById("draw-canvas");
+        our_canvas.height = window.innerHeight * .8;
+        our_canvas.width = window.innerWidth * .85;
+    }
+
+    var roomName = {{ room_name_json }};
+
+    var drawSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/drawshare/' + roomName + '/');
+
+    drawSocket.onmessage = function(e) {
+        let data = JSON.parse(e.data);
+        let color = data['color'];
+        let x1 = data['x1'];
+        let y1 = data['y1'];
+        let x2 = data['x2'];
+        let y2 = data['y2'];
+        let our_canvas = document.getElementById("draw-canvas");
+        let ctx = our_canvas.getContext("2d");
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        console.log("Trying to draw: " + data['color'] + " " + data['x1'] + "," + data['y1'] + "  " + data['x2'] + ","
+            + data['y2']);
+    };
+
+    drawSocket.onclose = function(e) {console.error('Chat socket closed unexpectedly');};
+    document.querySelector('#draw-canvas').onclick = function(e) {capture_draw(e)};
+
+    function capture_draw(e){
+        let drawColor = document.querySelector('#draw-color-select');
+        let x;
+        let y;
+
+        if (e.pageX || e.pageY) {
+            x = e.pageX;
+            y = e.pageY;
+        } else {
+            x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+            y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+        x -= document.querySelector('#draw-canvas').offsetLeft;
+        y -= document.querySelector('#draw-canvas').offsetTop;
+
+        drawSocket.send(JSON.stringify({
+            'color': drawColor.value,
+            'x1': x,
+            'y1': y,
+            'x2': x + 4 ,
+            'y2': y + 4
+        }));
+    }
+</script>
+</html>
