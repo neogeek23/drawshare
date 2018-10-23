@@ -4,5 +4,5 @@ from django.conf.urls import url
 from . import consumers
 
 websocket_urlpatterns = [
-    url(r'^wss/drawshare/(?P<room_name>[^/]+)/$', consumers.DrawConsumer),
+    url(r'^ws/drawshare/(?P<room_name>[^/]+)/$', consumers.DrawConsumer),
 ]
