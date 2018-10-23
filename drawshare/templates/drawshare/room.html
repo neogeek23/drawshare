@@ -37,8 +37,8 @@
     var roomName = {{ room_name_json }};
 
     var drawSocket = new WebSocket(
-        'ws://' + window.location.host +
-        '/ws/drawshare/' + roomName + '/');
+        'wss://' + window.location.host +
+        '/wss/drawshare/' + roomName + '/');
 
     drawSocket.onmessage = function(e) {
         let data = JSON.parse(e.data);
