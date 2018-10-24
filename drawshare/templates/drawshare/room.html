@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8"/>
     <title>DrawShare Room</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <select id="draw-color-select" name="colors">
@@ -11,34 +12,39 @@
         <option value="#00ff00">Green</option>
         <option value="#0000ff">Blue</option>
     </select>
+    <button id="draw-clear" type="button">Nuke It</button>
     <canvas id="draw-canvas" style="border:1px solid #000000;"></canvas>
 </body>
 <style>
     #draw-canvas{
         display: block;
         margin-left: 7.5%;
-        margin-top:1.5%
+        margin-top:1.5%;
     }
 
     #draw-color-select{
-        display: block;
+        display: inline-block;
+        margin-left: calc(1% - 8px);
+    }
+
+    #draw-clear{
+        display: inline-block;
+        position: absolute;
+        right: 1%;
     }
 </style>
 <script>
     window.onload = function(){resize_canvas()};
     window.onresize = function(){resize_canvas()};
 
-    function resize_canvas() {
-        let our_canvas = document.getElementById("draw-canvas");
-        our_canvas.height = window.innerHeight * .8;
-        our_canvas.width = window.innerWidth * .85;
-    }
-
     let roomName = {{ room_name_json }};
-
     let drawSocket = new WebSocket(
-        'wss://' + window.location.host +
+        'ws://' + window.location.host +
         '/wss/drawshare/' + roomName + '/');
+    let x1;
+    let y1;
+    let x2;
+    let y2;
 
     drawSocket.onmessage = function(e) {
         let data = JSON.parse(e.data);
@@ -60,31 +66,72 @@
             + data['y2']);
     };
 
-    drawSocket.onclose = function(e) {console.error('Chat socket closed unexpectedly');};
-    document.querySelector('#draw-canvas').onclick = function(e) {capture_draw(e)};
+    drawSocket.onclose = function(e) {console.error('Socket closed unexpectedly');};
+    document.querySelector('#draw-canvas').onmousemove = function(e) {cord_start(e); cord_end(); capture_draw()};
+    document.querySelector('#draw-canvas').ontouchstart = function(e) {cord_touch(e, "start")};
+    document.querySelector('#draw-canvas').ontouchmove = function(e) {cord_touch(e, "end"); capture_draw()};
+    document.querySelector('#draw-clear').onclick = function(){clear_draw()};
 
-    function capture_draw(e){
-        let drawColor = document.querySelector('#draw-color-select');
-        let x;
-        let y;
-
+    function cord_start(e){
         if (e.pageX || e.pageY) {
-            x = e.pageX;
-            y = e.pageY;
+            x1 = e.pageX;
+            y1 = e.pageY;
         } else {
-            x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-            y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            x1 = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+            y1 = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+        x1 -= document.querySelector('#draw-canvas').offsetLeft;
+        y1 -= document.querySelector('#draw-canvas').offsetTop;
+    }
+
+    function cord_end(){
+        x2 = x1 + 4;
+        y2 = y1 + 4;
+    }
+
+    function cord_touch(e, state){
+        let x,y;
+        if (e.changedTouches[e.changedTouches.length-1].pageX || e.changedTouches[e.changedTouches.length-1].pageY) {
+            x = e.changedTouches[e.changedTouches.length-1].pageX;
+            y = e.changedTouches[e.changedTouches.length-1].pageY;
+        } else {
+            x = e.changedTouches[e.changedTouches.length-1].clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+            y = e.changedTouches[e.changedTouches.length-1].clientY + document.body.scrollTop + document.documentElement.scrollTop;
         }
         x -= document.querySelector('#draw-canvas').offsetLeft;
         y -= document.querySelector('#draw-canvas').offsetTop;
+        if (state === "start"){
+            x1 = x;
+            y1 = y;
+        } else {
+            x2 = x;
+            y2 = y;
+        }
+    }
+
+    function capture_draw(){
+        let drawColor = document.querySelector('#draw-color-select');
 
         drawSocket.send(JSON.stringify({
             'color': drawColor.value,
-            'x1': x,
-            'y1': y,
-            'x2': x + 4 ,
-            'y2': y + 4
+            'x1': x1,
+            'y1': y1,
+            'x2': x2,
+            'y2': y2
         }));
+    }
+
+    function clear_draw(){
+        let our_canvas = document.getElementById("draw-canvas");
+        let ctx = our_canvas.getContext("2d");
+
+        ctx.clearRect(0,0, our_canvas.width, our_canvas.height);
+    }
+
+    function resize_canvas() {
+        let our_canvas = document.getElementById("draw-canvas");
+        our_canvas.height = window.innerHeight * .8;
+        our_canvas.width = window.innerWidth * .85;
     }
 </script>
 </html>
