@@ -39,7 +39,7 @@
 
     let roomName = {{ room_name_json }};
     let drawSocket = new WebSocket(
-        'wss://' + window.location.host +
+        'ws://' + window.location.host +
         '/wss/drawshare/' + roomName + '/');
     let x1;
     let y1;
