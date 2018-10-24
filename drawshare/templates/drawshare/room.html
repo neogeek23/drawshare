@@ -34,10 +34,10 @@
         our_canvas.width = window.innerWidth * .85;
     }
 
-    var roomName = {{ room_name_json }};
+    let roomName = {{ room_name_json }};
 
-    var drawSocket = new WebSocket(
-        'wss://' + window.location.host +
+    let drawSocket = new WebSocket(
+        'ws://' + window.location.host +
         '/ws/drawshare/' + roomName + '/');
 
     drawSocket.onmessage = function(e) {
