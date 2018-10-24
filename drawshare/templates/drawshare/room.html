@@ -38,7 +38,7 @@
 
     let drawSocket = new WebSocket(
         'wss://' + window.location.host +
-        '/ws/drawshare/' + roomName + '/');
+        '/wss/drawshare/' + roomName + '/');
 
     drawSocket.onmessage = function(e) {
         let data = JSON.parse(e.data);
