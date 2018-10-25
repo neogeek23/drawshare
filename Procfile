@@ -1,2 +1,2 @@
-web: daphne ChannelsDrawShareSite.routing.application --port $PORT --bind 0.0.0.0 -v2
+web: -b 0.0.0.0 -p $PORT daphne ChannelsDrawShareSite.asgi.application
 worker: python manage.py runworker channels
