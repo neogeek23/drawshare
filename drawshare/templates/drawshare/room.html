@@ -38,8 +38,9 @@
     window.onresize = function(){resize_canvas()};
 
     let roomName = {{ room_name_json }};
+    let ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
     let drawSocket = new WebSocket(
-        'wss://' + window.location.host +
+        ws_scheme +'://' + window.location.host +
         '/wss/drawshare/' + roomName + '/');
     let x1;
     let y1;
@@ -69,7 +70,7 @@
     drawSocket.onclose = function(e) {console.error('Socket closed unexpectedly');};
     document.querySelector('#draw-canvas').onmousemove = function(e) {cord_start(e); cord_end(); capture_draw()};
     document.querySelector('#draw-canvas').ontouchstart = function(e) {cord_touch(e, "start")};
-    document.querySelector('#draw-canvas').ontouchmove = function(e) {cord_touch(e, "end"); capture_draw()};
+    document.querySelector('#draw-canvas').ontouchmove = function(e) {cord_touch(e, "end"); capture_draw(); cord_pass_down()};
     document.querySelector('#draw-clear').onclick = function(){clear_draw()};
 
     function cord_start(e){
@@ -107,6 +108,11 @@
             x2 = x;
             y2 = y;
         }
+    }
+
+    function cord_pass_down(){
+        x1 = x2;
+        y1 = y2;
     }
 
     function capture_draw(){
