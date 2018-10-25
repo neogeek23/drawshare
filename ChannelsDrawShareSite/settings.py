@@ -74,18 +74,19 @@ WSGI_APPLICATION = 'ChannelsDrawShareSite.wsgi.application'
 ASGI_APPLICATION = 'ChannelsDrawShareSite.routing.application'
 
 CHANNEL_LAYERS = {
-    # 'default': {
-    #    'BACKEND': 'channels_redis.core.RedisChannelLayer',
-    #    'CONFIG': {
-    #        "hosts": [('127.0.0.1', 6379)],
-    #    },
-    # },
     'default': {
-        'BACKEND': 'asgi_redis.core.RedisChannelLayer',
+       'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
+            #"hosts": [('127.0.0.1', 6379)],
             "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-        }
-    }
+        },
+    },
+    #'default': {
+    #    'BACKEND': 'asgi_redis.core.RedisChannelLayer',
+    #    'CONFIG': {
+    #        "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+    #    }
+    #}
 }
 
 CACHES = {
